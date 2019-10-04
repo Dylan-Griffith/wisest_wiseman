@@ -1,0 +1,5 @@
+client_id = 'WfE78ZOd66KzLA'
+client_secret = 'shBJJ1gaFhNJ0E2A9f8pDKUg5dk'
+user_agent = 'Parabel bot v1.0'
+username ='WisestWiseman909'
+password = 'MonkeyRuns13$'
