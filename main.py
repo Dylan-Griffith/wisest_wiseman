@@ -3,8 +3,8 @@ import config
 import schedule
 import time
 from random import choice
-import pickle
 import os
+import pandas as pd
 
 comment_id_file = 'comments_replied_to.txt'
 submission_id_file = 'submission_replied_to.txt'
@@ -41,12 +41,17 @@ def clean_comments():
             comment.delete()
 
 
-with open('formatted_parables.pickle', 'rb') as fin:
-    parables = pickle.load(fin)
+parables_df = pd.read_csv('parables.csv', header=None)
+parables = list(parables_df['text'])
 
 orig_par = parables
 
-SUBREDDITS = ["politics", 'teenagers', 'memes', 'relationship_advice', 'Showerthoughts']
+SUBREDDITS = ["Showerthoughts", 'Iamverysmart', 'memes', 'dankmemes', 'funny',
+              'videos', 'wholesomememes', 'WatchPeopleDieInside', 'mildlyinteresting']
+
+banned_subreddits = ['politicalhumor', 'pewdiepiesubmissions', 'relationship_advice',
+                     'todayilearned', 'Philosophy', 'Politics', 'unpopularopinion']
+
 reddit = authenticate()
 me = reddit.user.me()
 
@@ -55,8 +60,12 @@ def main():
     global parables
     SUBREDDIT = choice(SUBREDDITS)
     print(SUBREDDIT)
-    comment_id_list = get_replied_ids(comment_id_file)
     submission_id_list = get_replied_ids(submission_id_file)
+
+    # resets parables list if empty
+    if not parables:
+        print('adding more....')
+        parables = list(parables_df['text'])
 
     # Finds top  hot post from subreddit and comments to one of the top level comments
     for submission in reddit.subreddit(SUBREDDIT).hot(limit=10):
@@ -68,15 +77,8 @@ def main():
                     top_comments.remove(comment)
             random_comment = choice(top_comments)
 
-            with open('comments_replied_to.txt', 'a') as fout:
-                fout.write(random_comment.id + '\n')
-
             with open('submission_replied_to.txt', 'a') as fout:
                 fout.write(submission.id + '\n')
-
-            # resets parables list if empty
-            if not parables:
-                parables = orig_par
 
             random_parable = choice(parables)
             parables.remove(random_parable)
@@ -84,13 +86,6 @@ def main():
             print(random_comment.body)
             print(random_parable)
             random_comment.reply(random_parable)
-
-            with open('Comments.txt', 'a') as fout:
-                fout.write(SUBREDDIT + '\n')
-                fout.write('TITLE: ' + submission.title + '\n')
-                fout.write('ID: ' + submission.id + '\n')
-                fout.write('Comment: ' + random_comment.body + '\n')
-                fout.write(random_parable + '\n')
 
             break
 
